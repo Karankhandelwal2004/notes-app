@@ -32,9 +32,10 @@ function App() {
       if (userData) setUser(JSON.parse(userData));
 
       axios
-        .get('http://localhost:5000/api/notes', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+  .get('https://notes-backend-doza.onrender.com/api/notes', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
         .then((res) => setNotes(res.data))
         .catch((err) => {
           console.error('❌ Error fetching notes:', err);
@@ -55,9 +56,10 @@ function App() {
 
   const fetchNotes = (token) => {
     axios
-      .get('http://localhost:5000/api/notes', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+  .get('https://notes-backend-doza.onrender.com/api/notes', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
       .then((res) => setNotes(res.data))
       .catch((err) => {
         console.error('❌ Error fetching notes:', err);
@@ -70,8 +72,9 @@ function App() {
     if (!token) return;
 
     const url = editingNote
-      ? `http://localhost:5000/api/notes/${editingNote._id}`
-      : 'http://localhost:5000/api/notes';
+    ? `https://notes-backend-doza.onrender.com/api/notes/${editingNote._id}`
+    : 'https://notes-backend-doza.onrender.com/api/notes';
+  
 
     const method = editingNote ? 'put' : 'post';
 
@@ -104,9 +107,11 @@ function App() {
     if (!token) return;
 
     axios
-      .delete(`http://localhost:5000/api/notes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    axios
+    .delete(`https://notes-backend-doza.onrender.com/api/notes/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  
       .then(() => setNotes((prev) => prev.filter((note) => note._id !== id)))
       .catch((err) => console.error(err));
   };
