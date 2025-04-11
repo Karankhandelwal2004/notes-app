@@ -106,7 +106,7 @@ function App() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    axios
+    
     axios
     .delete(`https://notes-backend-doza.onrender.com/api/notes/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
