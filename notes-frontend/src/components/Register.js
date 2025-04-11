@@ -12,7 +12,8 @@ const Register = ({ onRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const res = await axios.post('https://notes-backend-doza.onrender.com/api/auth/register', formData);
+
       setMessage(res.data.message || 'Registration successful');
       setTimeout(() => {
         onRegister(); // ✅ switch to login form after success
