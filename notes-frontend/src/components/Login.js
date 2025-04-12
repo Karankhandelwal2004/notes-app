@@ -16,11 +16,12 @@ function Login({ onLogin }) {
         password,
       });
 
-      const { token, name } = res.data;
+      const { token, user } = res.data;
 
-      if (token) {
-        onLogin(token, { name, email }); // ✅ Send user info too
-      }
+if (token && user) {
+  onLogin(token, user); // 🎯 Pass the whole user object
+}
+
     } catch (err) {
       console.error('Login Error:', err);
       setError('Invalid credentials. Please try again.');
