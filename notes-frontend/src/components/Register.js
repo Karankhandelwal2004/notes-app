@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import API from './utils/api'; // ✅ Import centralized API
 
 const Register = ({ onRegister }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -12,7 +12,7 @@ const Register = ({ onRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('https://notes-backend-doza.onrender.com/api/auth/register', formData);
+      const res = await API.post('/api/auth/register', formData); // ✅ Use API instance
 
       setMessage(res.data.message || 'Registration successful');
       setTimeout(() => {
@@ -51,7 +51,16 @@ const Register = ({ onRegister }) => {
         />
         <button type="submit">Register</button>
       </form>
-      {message && <p style={{ marginTop: '10px', color: message.includes('success') ? 'green' : 'red' }}>{message}</p>}
+      {message && (
+        <p
+          style={{
+            marginTop: '10px',
+            color: message.toLowerCase().includes('success') ? 'green' : 'red',
+          }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 };

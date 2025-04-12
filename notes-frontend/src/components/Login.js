@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import API from '../utils/api'; // ✅ Using our custom axios instance
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -11,7 +11,7 @@ function Login({ onLogin }) {
     setError('');
 
     try {
-      const res = await axios.post('/api/auth/login', {
+      const res = await API.post('/api/auth/login', {
         email,
         password,
       });
