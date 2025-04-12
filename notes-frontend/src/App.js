@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from './utils/api'; // ✅ Use central API file
 import NoteForm from './components/NoteForm';
 import NoteList from './components/NoteList';
 import Login from './components/Login';
 import Register from './Register';
-import exportToPDF from './utils/exportToPDF'; // 📄 Import the PDF utility
+import exportToPDF from './utils/exportToPDF';
 import './App.css';
 
 function App() {
@@ -13,53 +13,42 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [user, setUser] = useState(null);
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
-  });
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-
+    // Handle dark mode toggle
+    document.body.classList.toggle('dark-mode', darkMode);
+    localStorage.setItem('darkMode', darkMode);
+  
+    // Check if user is logged in
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-
+  
     if (token) {
       setIsLoggedIn(true);
       if (userData) setUser(JSON.parse(userData));
-
-      axios
-  .get('https://notes-backend-doza.onrender.com/api/notes', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
+    } else {
+      setIsLoggedIn(false); // If no token, set logged in state to false
+    }
+  
+    // Fetch notes if logged in
+    if (isLoggedIn && token) {
+      API.get('/api/notes', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
         .then((res) => setNotes(res.data))
         .catch((err) => {
           console.error('❌ Error fetching notes:', err);
           if (err.response?.status === 401) logout();
         });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', darkMode);
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  }, [darkMode]);
+  }, [darkMode, isLoggedIn]); // Re-run when darkMode or isLoggedIn changes
+  
 
   const fetchNotes = (token) => {
-    axios
-  .get('https://notes-backend-doza.onrender.com/api/notes', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
+    API.get('/api/notes', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => setNotes(res.data))
       .catch((err) => {
         console.error('❌ Error fetching notes:', err);
@@ -71,14 +60,10 @@ function App() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const url = editingNote
-    ? `https://notes-backend-doza.onrender.com/api/notes/${editingNote._id}`
-    : 'https://notes-backend-doza.onrender.com/api/notes';
-  
-
+    const url = editingNote ? `/api/notes/${editingNote._id}` : '/api/notes';
     const method = editingNote ? 'put' : 'post';
 
-    axios({
+    API({
       method,
       url,
       data: note,
@@ -89,9 +74,7 @@ function App() {
     })
       .then((res) => {
         if (editingNote) {
-          setNotes((prev) =>
-            prev.map((n) => (n._id === editingNote._id ? res.data : n))
-          );
+          setNotes((prev) => prev.map((n) => (n._id === editingNote._id ? res.data : n)));
           setEditingNote(null);
         } else {
           setNotes((prev) => [res.data, ...prev]);
@@ -106,12 +89,9 @@ function App() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    
-    axios
-    .delete(`https://notes-backend-doza.onrender.com/api/notes/${id}`, {
+    API.delete(`/api/notes/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-  
       .then(() => setNotes((prev) => prev.filter((note) => note._id !== id)))
       .catch((err) => console.error(err));
   };
@@ -137,7 +117,6 @@ function App() {
 
   return (
     <div className="App">
-      {/* 🌙 Dark mode toggle button */}
       <div className="toggle-theme">
         <button
           className="theme-toggle-btn"
@@ -152,43 +131,32 @@ function App() {
 
       {isLoggedIn ? (
         <>
-  
-
           <NoteForm
             onSubmit={handleAddNote}
             initialData={editingNote || { title: '', content: '' }}
             onCancel={() => setEditingNote(null)}
           />
-<div className="user-info">
-  <p>
-    Welcome, <strong>{user?.name || 'User'}</strong>
-  </p>
-
-  <div className="action-buttons">
-    <button className="logout-btn" onClick={logout}>
-      Logout
-    </button>
-    <button className="export-btn" onClick={() => exportToPDF(notes)}>
-      📄 Export to PDF
-    </button>
-  </div>
-</div>
-
-          <NoteList
-            notes={notes}
-            onDelete={handleDeleteNote}
-            onEdit={handleEditNote}
-          />
+          <div className="user-info">
+            <p>
+              Welcome, <strong>{user?.name || 'User'}</strong>
+            </p>
+            <div className="action-buttons">
+              <button className="logout-btn" onClick={logout}>
+                Logout
+              </button>
+              <button className="export-btn" onClick={() => exportToPDF(notes)}>
+                📄 Export to PDF
+              </button>
+            </div>
+          </div>
+          <NoteList notes={notes} onDelete={handleDeleteNote} onEdit={handleEditNote} />
         </>
       ) : showRegister ? (
         <>
           <Register onRegister={() => setShowRegister(false)} />
           <p className="toggle-link">
             Already have an account?{' '}
-            <button
-              className="toggle-btn"
-              onClick={() => setShowRegister(false)}
-            >
+            <button className="toggle-btn" onClick={() => setShowRegister(false)}>
               Login
             </button>
           </p>
@@ -198,10 +166,7 @@ function App() {
           <Login onLogin={handleLoginSuccess} />
           <p className="toggle-link">
             Don’t have an account?{' '}
-            <button
-              className="toggle-btn"
-              onClick={() => setShowRegister(true)}
-            >
+            <button className="toggle-btn" onClick={() => setShowRegister(true)}>
               Register
             </button>
           </p>
